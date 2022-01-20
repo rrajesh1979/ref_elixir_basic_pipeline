@@ -74,6 +74,9 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: artifacts
+          path: |
+            ref_elixir_basic_pipeline
+            lib
 
       # - name: Publish release
       #   uses: moomerman/actions/bin/ghr@master
