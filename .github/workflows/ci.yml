@@ -22,6 +22,7 @@ jobs:
           - pair:
               elixir: 1.13
               otp: 24.2
+              node: 16.13.2
             lint: lint
     steps:
       - name: Checking out the repository
@@ -32,6 +33,11 @@ jobs:
         with:
           otp-version: ${{matrix.pair.otp}}
           elixir-version: ${{matrix.pair.elixir}}
+
+      - name: Install node and Dependencies
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
 
       - name: Install Dependencies
         run: mix deps.get --only test
@@ -55,3 +61,18 @@ jobs:
 
       - name: Build Executable
         run: mix escript.build
+
+      - name: Prepare release
+        run: |
+          mix compile
+          mix release
+          # yarn --cwd assets deploy
+        env:
+          MIX_ENV: prod
+
+      - name: Publish release
+        uses: moomerman/actions/bin/ghr@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_PATH: _build/prod/rel
+          APPLICATION: ref_elixir_basic_pipeline
