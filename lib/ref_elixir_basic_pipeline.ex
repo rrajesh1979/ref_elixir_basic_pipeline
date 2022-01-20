@@ -33,6 +33,7 @@ defmodule RefElixir.BasicPipeline do
     case opts[:file] do
       true ->
         Logger.info("File path: #{inspect(file_path)}")
+        file_path
 
       _ ->
         Logger.error("
@@ -40,6 +41,7 @@ defmodule RefElixir.BasicPipeline do
         usage:
           ./ref_elixir_basic_pipeline {options} arg1 arg2 ...
         ")
+        raise "Error"
     end
   end
 
