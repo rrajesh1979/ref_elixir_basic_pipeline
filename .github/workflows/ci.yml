@@ -70,9 +70,14 @@ jobs:
         env:
           MIX_ENV: prod
 
-      - name: Publish release
-        uses: moomerman/actions/bin/ghr@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_PATH: _build/prod/rel
-          APPLICATION: ref_elixir_basic_pipeline
+      - name: 'Upload version files'
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+
+      # - name: Publish release
+      #   uses: moomerman/actions/bin/ghr@master
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     RELEASE_PATH: _build/prod/rel
+      #     APPLICATION: ref_elixir_basic_pipeline
