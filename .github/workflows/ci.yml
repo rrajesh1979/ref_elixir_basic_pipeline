@@ -47,16 +47,8 @@ jobs:
 
       - run: mix test
 
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8.1
+      - name: Run Credo
+        run: mix credo
 
-      - name: Deploy to Gigalixir
-        uses: mhanberg/gigalixir-action@v0.4.0
-        with:
-          GIGALIXIR_USERNAME: ${{ secrets.GIGALIXIR_USERNAME }}
-          GIGALIXIR_PASSWORD: ${{ secrets.GIGALIXIR_PASSWORD }}
-          GIGALIXIR_APP: ref-elixir-basic-pipeline
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          MIGRATIONS: false
-          GIGALIXIR_CLEAN: true
+      - name: Run Dialyzer
+        run: mix dialyzer --no-check --halt-exit-status
