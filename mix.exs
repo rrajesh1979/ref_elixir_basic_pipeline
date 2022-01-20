@@ -35,7 +35,7 @@ defmodule RefElixirBasicPipeline.MixProject do
       # Static code analysis tool with a focus on code consistency and teaching.
       {:credo, "~> 1.6"},
       # Dialyzer is a static analysis tool
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
 
       # Library to make HTTP calls
       {:httpoison, "~> 1.8"}
