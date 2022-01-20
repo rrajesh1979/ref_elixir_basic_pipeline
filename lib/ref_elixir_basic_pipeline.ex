@@ -48,4 +48,8 @@ defmodule RefElixir.BasicPipeline do
   def process(file_path) do
     File.read!(file_path)
   end
+
+  def hello do
+    :hello
+  end
 end

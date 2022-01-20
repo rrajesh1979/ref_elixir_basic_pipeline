@@ -1,8 +1,8 @@
-defmodule RefElixirBasicPipelineTest do
+defmodule RefElixir.BasicPipelineTest do
   use ExUnit.Case
-  doctest RefElixirBasicPipeline
+  doctest RefElixir.BasicPipeline
 
   test "greets the world" do
-    assert RefElixirBasicPipeline.hello() == :world
+    assert RefElixir.BasicPipeline.hello() == :hello
   end
 end
