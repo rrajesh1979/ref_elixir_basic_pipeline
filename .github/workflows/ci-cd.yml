@@ -1,4 +1,4 @@
-name: CI
+name: CI-CD
 
 on:
   pull_request:
@@ -22,7 +22,6 @@ jobs:
           - pair:
               elixir: 1.13
               otp: 24.2
-              node: 16.13.2
             lint: lint
     steps:
       - name: Checking out the repository
@@ -62,22 +61,6 @@ jobs:
       - name: Build Executable
         run: mix escript.build
 
-      - name: Prepare release
-        run: |
-          mix compile
-          mix release
-          # yarn --cwd assets deploy
-        env:
-          MIX_ENV: prod
-
-      - name: 'Upload version files'
-        uses: actions/upload-artifact@v2
-        with:
-          name: artifacts
-          path: |
-            ref_elixir_basic_pipeline
-            lib
-
       - name: "Release latest"
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -89,3 +72,10 @@ jobs:
             ref_elixir_basic_pipeline
             lib
 
+      - name: 'Upload version files'
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: |
+            ref_elixir_basic_pipeline
+            lib
