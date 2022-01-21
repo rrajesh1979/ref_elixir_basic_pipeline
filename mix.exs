@@ -50,7 +50,10 @@ defmodule RefElixirBasicPipeline.MixProject do
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
 
       # Library to make HTTP calls
-      {:httpoison, "~> 1.8"}
+      {:httpoison, "~> 1.8"},
+
+      # Library to parse CSV files
+      {:nimble_csv, "~> 1.2"}
     ]
   end
 
