@@ -15,6 +15,16 @@ defmodule RefElixir.BasicPipeline do
   require Logger
   alias NimbleCSV.RFC4180, as: CSV
 
+  require Application
+  @experian_endpoint Application.compile_env(:ref_elixir_basic_pipeline, :experian_endpoint)
+  @equifax_endpoint Application.compile_env(:ref_elixir_basic_pipeline, :equifax_endpoint)
+  @aml_check_endpoint Application.compile_env(:ref_elixir_basic_pipeline, :aml_check_endpoint)
+  @fraud_check_endpoint Application.compile_env(:ref_elixir_basic_pipeline, :fraud_check_endpoint)
+  @account_balance_endpoint Application.compile_env(
+                              :ref_elixir_basic_pipeline,
+                              :account_balance_endpoint
+                            )
+
   def main(args \\ []) do
     Logger.info("Starting RefElixir.BasicPipeline")
     Logger.info("Arguments: #{args}")
@@ -22,7 +32,7 @@ defmodule RefElixir.BasicPipeline do
     args
     |> parse_args()
     |> response()
-    |> process_eager_complex()
+    |> process_eager()
   end
 
   defp parse_args(args) do
@@ -49,9 +59,24 @@ defmodule RefElixir.BasicPipeline do
     end
   end
 
-  def process_eager_complex(file_path) do
+  def process_eager(file_path) do
+    read_file(file_path)
+    |> parse_rows
+    |> Enum.map(&print_record/1)
+    |> Enum.map(&experian_check/1)
+    |> Enum.map(&equifax_check/1)
+    |> Enum.map(&aml_check/1)
+    |> Enum.map(&fraud_check/1)
+    |> Enum.map(&account_balance_check/1)
+  end
+
+  def read_file(file_path) do
     file_path
     |> File.read!()
+  end
+
+  def parse_rows(row) do
+    row
     |> CSV.parse_string()
     |> Enum.map(fn row ->
       %{
@@ -62,116 +87,136 @@ defmodule RefElixir.BasicPipeline do
         location: Enum.at(row, 4)
       }
     end)
-    # Credit check with Experian
-    |> Enum.map(fn row ->
-      response =
-        case HTTPoison.get!("https://run.mocky.io/v3/e6113909-57cb-47fe-9cbd-241e6e32b257") do
-          %HTTPoison.Response{status_code: 200} ->
-            %{
-              request_id: row.request_id,
-              request_type: "Experian Check",
-              status_code: 200
-            }
+  end
 
-          _ ->
-            %{
-              request_id: row.request_id,
-              request_type: "Experian Check",
-              status_code: :error
-            }
-        end
+  def print_record(record) do
+    Logger.info("
+      request_id: #{record[:request_id]}
+      name: #{record[:name]}
+      credit_requested: #{record[:credit_requested]}
+      requested_date: #{record[:requested_date]}
+      location: #{record[:location]}")
+    record
+  end
 
-      Logger.info("Response Experian Check: #{inspect(response)}")
-      row
-    end)
-    # Credit check with Equifax
-    |> Enum.map(fn row ->
-      response =
-        case HTTPoison.get!("https://run.mocky.io/v3/741a50f7-cce9-495b-a094-d4a00c5438a3") do
-          %HTTPoison.Response{status_code: 200} ->
-            %{
-              request_id: row.request_id,
-              request_type: "Equifax Check",
-              status_code: 200
-            }
+  def experian_check(request) do
+    Logger.info("Request for Experian Check: #{inspect(request)}")
 
-          _ ->
-            %{
-              request_id: row.request_id,
-              request_type: "Equifax Check",
-              status_code: :error
-            }
-        end
+    response =
+      case HTTPoison.get!(@experian_endpoint) do
+        %HTTPoison.Response{status_code: 200} ->
+          %{
+            request_id: request.request_id,
+            request_type: "Experian Check",
+            status_code: 200
+          }
 
-      Logger.info("Response Equifax Check: #{inspect(response)}")
-      row
-    end)
-    # Check for AML
-    |> Enum.map(fn row ->
-      response =
-        case HTTPoison.get!("https://run.mocky.io/v3/41189e78-3d40-4ab4-971c-ce5c2bb266d2") do
-          %HTTPoison.Response{status_code: 200} ->
-            %{
-              request_id: row.request_id,
-              request_type: "AML Check",
-              status_code: 200
-            }
+        _ ->
+          %{
+            request_id: request.request_id,
+            request_type: "Experian Check",
+            status_code: :error
+          }
+      end
 
-          _ ->
-            %{
-              request_id: row.request_id,
-              request_type: "AML Check",
-              status_code: :error
-            }
-        end
+    Logger.info("Response Experian Check: #{inspect(response)}")
+    request
+  end
 
-      Logger.info("Response AML Check: #{inspect(response)}")
-      row
-    end)
-    # Check for Fraud
-    |> Enum.map(fn row ->
-      response =
-        case HTTPoison.get!("https://run.mocky.io/v3/a807d47c-8295-4471-acfa-593bcd0bfe27") do
-          %HTTPoison.Response{status_code: 200} ->
-            %{
-              request_id: row.request_id,
-              request_type: "Fraud Check",
-              status_code: 200
-            }
+  def equifax_check(request) do
+    Logger.info("Request for Equifax Check: #{inspect(request)}")
 
-          _ ->
-            %{
-              request_id: row.request_id,
-              request_type: "Fraud Check",
-              status_code: :error
-            }
-        end
+    response =
+      case HTTPoison.get!(@equifax_endpoint) do
+        %HTTPoison.Response{status_code: 200} ->
+          %{
+            request_id: request.request_id,
+            request_type: "Equifax Check",
+            status_code: 200
+          }
 
-      Logger.info("Response Fraud Check: #{inspect(response)}")
-      row
-    end)
-    # Check for Account Balance
-    |> Enum.map(fn row ->
-      response =
-        case HTTPoison.get!("https://run.mocky.io/v3/054783f0-2613-413b-bb99-1f0cfeda49e1") do
-          %HTTPoison.Response{status_code: 200} ->
-            %{
-              request_id: row.request_id,
-              request_type: "Account Balance Check",
-              status_code: 200
-            }
+        _ ->
+          %{
+            request_id: request.request_id,
+            request_type: "Equifax Check",
+            status_code: :error
+          }
+      end
 
-          _ ->
-            %{
-              request_id: row.request_id,
-              request_type: "Account Balance Check",
-              status_code: :error
-            }
-        end
+    Logger.info("Response from Equifax Check: #{inspect(response)}")
+    request
+  end
 
-      Logger.info("Response Account Balance Check: #{inspect(response)}")
-      row
-    end)
+  def aml_check(request) do
+    Logger.info("Request for AML Check: #{inspect(request)}")
+
+    response =
+      case HTTPoison.get!(@aml_check_endpoint) do
+        %HTTPoison.Response{status_code: 200} ->
+          %{
+            request_id: request.request_id,
+            request_type: "AML Check",
+            status_code: 200
+          }
+
+        _ ->
+          %{
+            request_id: request.request_id,
+            request_type: "AML Check",
+            status_code: :error
+          }
+      end
+
+    Logger.info("Response from AML Check: #{inspect(response)}")
+    request
+  end
+
+  def fraud_check(request) do
+    Logger.info("Request for Fraud Check: #{inspect(request)}")
+
+    response =
+      case HTTPoison.get!(@fraud_check_endpoint) do
+        %HTTPoison.Response{status_code: 200} ->
+          %{
+            request_id: request.request_id,
+            request_type: "Fraud Check",
+            status_code: 200
+          }
+
+        _ ->
+          %{
+            request_id: request.request_id,
+            request_type: "Fraud Check",
+            status_code: :error
+          }
+      end
+
+    Logger.info("Response from Fraud Check: #{inspect(response)}")
+    request
+  end
+
+  def account_balance_check(request) do
+    Logger.info("Request for Account Balance Check: #{inspect(request)}")
+
+    response =
+      case HTTPoison.get!(@account_balance_endpoint) do
+        %HTTPoison.Response{status_code: 200} ->
+          %{
+            request_id: request.request_id,
+            request_type: "Account Balance Check",
+            status_code: 200
+          }
+
+        _ ->
+          %{
+            request_id: request.request_id,
+            request_type: "Account Balance Check",
+            status_code: :error
+          }
+      end
+
+    Logger.info("Response from Account Balance Check: #{inspect(response)}")
+    request
   end
 
   def hello do
