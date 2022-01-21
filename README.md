@@ -19,3 +19,7 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at <https://hexdocs.pm/ref_elixir_basic_pipeline>.
 
+```elixir
+ex_doc "ref_elixir_basic_pipeline" "0.1.0" _build/dev/lib/project/ebin -m "RefElixir.BasicPipeline" -u "https://github.com/rrajesh1979/ref_elixir_basic_pipeline" -l path/to/logo.png
+
+```

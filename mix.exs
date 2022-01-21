@@ -13,7 +13,16 @@ defmodule RefElixirBasicPipeline.MixProject do
         plt_add_apps: [:wx],
         plt_ignore_apps: [:mnesia]
       ],
-      escript: escript()
+      escript: escript(),
+      # Docs
+      name: :ref_elixir_basic_pipeline,
+      source_url: "https://github.com/rrajesh1979/ref_elixir_basic_pipeline",
+      docs: [
+        # The main page in the docs
+        main: "RefElixir.BasicPipeline",
+        # logo: "path/to/logo.png",
+        extras: ["README.md"]
+      ]
     ]
   end
 
@@ -30,6 +39,9 @@ defmodule RefElixirBasicPipeline.MixProject do
     [
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+
+      # Elixir documentation generation tool
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false},
 
       # Dev / Test Libraries
       # Static code analysis tool with a focus on code consistency and teaching.

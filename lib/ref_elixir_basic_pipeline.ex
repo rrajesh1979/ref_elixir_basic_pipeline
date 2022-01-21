@@ -15,6 +15,9 @@ defmodule RefElixir.BasicPipeline do
   require Logger
 
   def main(args \\ []) do
+    Logger.info("Starting RefElixir.BasicPipeline")
+    Logger.info("Arguments: #{args}")
+
     args
     |> parse_args()
     |> response()
