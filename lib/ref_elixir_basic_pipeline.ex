@@ -68,6 +68,7 @@ defmodule RefElixir.BasicPipeline do
     |> Enum.map(&aml_check/1)
     |> Enum.map(&fraud_check/1)
     |> Enum.map(&account_balance_check/1)
+    |> Enum.map(&credit_decision/1)
   end
 
   def read_file(file_path) do
@@ -251,6 +252,27 @@ defmodule RefElixir.BasicPipeline do
       request
       | status: "ACCOUNT_BALANCE_CHECK_DONE",
         activity_log: Enum.concat(request.activity_log, ["ACCOUNT_BALANCE_CHECK"])
+    }
+
+    request_processed
+  end
+
+  def credit_decision(request) do
+    Logger.info("Final decision on credit request: #{inspect(request)}")
+
+    final_decision =
+      case request.status do
+        "ACCOUNT_BALANCE_CHECK_DONE" ->
+          "APPROVED"
+
+        _ ->
+          "REJECTED"
+      end
+
+    request_processed = %{
+      request
+      | status: final_decision,
+        activity_log: Enum.concat(request.activity_log, ["CREDIT_DECISION"])
     }
 
     request_processed
