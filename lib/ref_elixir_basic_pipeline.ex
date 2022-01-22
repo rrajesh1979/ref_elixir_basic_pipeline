@@ -84,7 +84,9 @@ defmodule RefElixir.BasicPipeline do
         name: Enum.at(row, 1),
         credit_requested: Enum.at(row, 2),
         requested_date: Enum.at(row, 3),
-        location: Enum.at(row, 4)
+        location: Enum.at(row, 4),
+        status: "NEW_REQUEST",
+        activity_log: ["REQUEST_CREATED"]
       }
     end)
   end
@@ -120,7 +122,14 @@ defmodule RefElixir.BasicPipeline do
       end
 
     Logger.info("Response Experian Check: #{inspect(response)}")
-    request
+
+    request_processed = %{
+      request
+      | status: "EXPERIAN_CHECK_DONE",
+        activity_log: Enum.concat(request.activity_log, ["EXPERIAN_CHECK"])
+    }
+
+    request_processed
   end
 
   def equifax_check(request) do
@@ -144,7 +153,14 @@ defmodule RefElixir.BasicPipeline do
       end
 
     Logger.info("Response from Equifax Check: #{inspect(response)}")
-    request
+
+    request_processed = %{
+      request
+      | status: "EQUIFAX_CHECK_DONE",
+        activity_log: Enum.concat(request.activity_log, ["EQUIFAX_CHECK"])
+    }
+
+    request_processed
   end
 
   def aml_check(request) do
@@ -168,7 +184,14 @@ defmodule RefElixir.BasicPipeline do
       end
 
     Logger.info("Response from AML Check: #{inspect(response)}")
-    request
+
+    request_processed = %{
+      request
+      | status: "AML_CHECK_DONE",
+        activity_log: Enum.concat(request.activity_log, ["AML_CHECK"])
+    }
+
+    request_processed
   end
 
   def fraud_check(request) do
@@ -192,7 +215,14 @@ defmodule RefElixir.BasicPipeline do
       end
 
     Logger.info("Response from Fraud Check: #{inspect(response)}")
-    request
+
+    request_processed = %{
+      request
+      | status: "FRAUD_CHECK_DONE",
+        activity_log: Enum.concat(request.activity_log, ["FRAUD_CHECK"])
+    }
+
+    request_processed
   end
 
   def account_balance_check(request) do
@@ -216,7 +246,14 @@ defmodule RefElixir.BasicPipeline do
       end
 
     Logger.info("Response from Account Balance Check: #{inspect(response)}")
-    request
+
+    request_processed = %{
+      request
+      | status: "ACCOUNT_BALANCE_CHECK_DONE",
+        activity_log: Enum.concat(request.activity_log, ["ACCOUNT_BALANCE_CHECK"])
+    }
+
+    request_processed
   end
 
   def hello do
