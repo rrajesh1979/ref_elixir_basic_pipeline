@@ -260,14 +260,24 @@ defmodule RefElixir.BasicPipeline do
   def credit_decision(request) do
     Logger.info("Final decision on credit request: #{inspect(request)}")
 
+    {credit_requested, _} = Integer.parse(request.credit_requested)
+    Logger.info("Credit requested: #{inspect(credit_requested)}")
+
     final_decision =
-      case request.status do
-        "ACCOUNT_BALANCE_CHECK_DONE" ->
+      case {request.status, credit_requested} do
+        {"ACCOUNT_BALANCE_CHECK_DONE", _}
+        when credit_requested < 500_000 ->
           "APPROVED"
+
+        {"ACCOUNT_BALANCE_CHECK_DONE", _}
+        when credit_requested > 500_000 and credit_requested < 1_000_000 ->
+          "EXCEPTION_REVIEW"
 
         _ ->
           "REJECTED"
       end
+
+    # Logger.info("Final decision: #{inspect(final_decision)}")
 
     request_processed = %{
       request
@@ -282,3 +292,10 @@ defmodule RefElixir.BasicPipeline do
     :hello
   end
 end
+
+# Commands
+# process_eager = fn (file_path) -> RefElixir.BasicPipeline.process_eager(file_path) end
+# {uSecs, _} = :timer.tc(process_eager, ["/Users/rajesh/Learn/elixir/ref_elixir_basic_pipeline/priv/data/data_1.csv"])
+# 17_644_261 uSecs
+# 17_220_935 uSecs
+# 17_310_406 uSecs
